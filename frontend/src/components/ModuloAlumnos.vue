@@ -1,15 +1,26 @@
 <template>
   <div class="modulo">
     <div class="modulo-header">
-      <h2>👥 Usuarios</h2>
-      <button @click="mostrarFormulario = true" class="btn-nuevo">+ Nuevo Usuario</button>
+      <h2>Alumnos</h2>
+      <button @click="mostrarFormulario = true" class="btn-nuevo">+ Nuevo Alumno</button>
       <!--ACA VAA UN BOTON PARA PERMITIR CARGA MASIVA-->
+        <input
+        ref="inputExcel"
+        type="file"
+        accept=".xlsx, .xls, .csv"
+        @change="cargarDesdeExcel"
+        style="display: none;"
+        />
+        <button @click="inputExcel.click()" class="btn-carga-masiva">
+        📁 Cargar Excel
+        </button>
+
     </div>
 
     <!-- Formulario de crear/editar -->
     <div v-if="mostrarFormulario" class="form-modal">
       <div class="form-content">
-        <h3>{{ editando ? 'Editar Usuario' : 'Nuevo Usuario' }}</h3>
+        <h3>{{ editando ? 'Editar Alumno' : 'Nuevo Alumnno' }}</h3>
         
         <div class="form-group">
           <label>DNI</label>
@@ -27,15 +38,23 @@
         </div>
 
         <div class="form-group">
-          <label>Tipo</label>
-          <select v-model="form.tipo">
-            <option value="alumno">Alumno</option>
-            <option value="docente">Docente</option>
-          </select>
+          <label>Celular</label>
+          <input v-model="form.celular" type="text" placeholder="Celular" />
         </div>
 
+        <div class="form-group">
+          <label>Email</label>
+          <input v-model="form.email" type="text" placeholder="Email" />
+        </div>
+
+        <div class="form-group">
+          <label>Carrera</label>
+          <input v-model="form.carrera" type="text" placeholder="Carrera" />
+        </div>
+
+
         <div class="form-actions">
-          <button @click="guardarUsuario" class="btn-guardar" :disabled="loading">
+          <button @click="guardarAlumno" class="btn-guardar" :disabled="loading">
             {{ loading ? 'Guardando...' : 'Guardar' }}
           </button>
           <button @click="cerrarFormulario" class="btn-cancelar">Cancelar</button>
@@ -60,14 +79,18 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="usuario in usuarios" :key="usuario.id_usuario">
-            <td>{{ usuario.dni }}</td>
-            <td>{{ usuario.nombre }}</td>
-            <td>{{ usuario.apellido }}</td>
-            <td><span class="badge" :class="usuario.tipo">{{ usuario.tipo }}</span></td>
+          <tr v-for="alumno in alumnos" :key="alumno.id_alumno">
+            <td>{{ alumno.dni }}</td>
+            <td>{{ alumno.nombre }}</td>
+            <td>{{ alumno.apellido }}</td>
+            <td>{{ alumno.celular }}</td>
+            <td>{{ alumno.email }}</td>
+            <td>{{ alumno.carrera }}</td>
             <td class="acciones">
-              <button @click="editarUsuario(usuario)" class="btn-editar">Editar</button>
-              <button @click="eliminarUsuario(usuario.id_usuario)" class="btn-eliminar">Eliminar</button>
+              <template v-if="alumno.id_alumno">
+                <button @click="editarAlumno(alumno)" class="btn-editar">Editar</button>
+                <button @click="eliminarAlumno(alumno.id_alumno)" class="btn-eliminar">Eliminar</button>
+              </template>
             </td>
           </tr>
         </tbody>
@@ -80,9 +103,12 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import { usuariosService } from '../services/api';
+import { alumnosService } from '../services/api';
+import * as XLSX from 'xlsx';
+const inputExcel = ref(null);
 
-const usuarios = ref([]);
+
+const alumnos = ref([]);
 const mostrarFormulario = ref(false);
 const editando = ref(false);
 const loading = ref(false);
@@ -93,48 +119,50 @@ const form = ref({
   dni: '',
   nombre: '',
   apellido: '',
-  tipo: 'alumno'
+  celular: '',
+  email: '',
+  carrera: '',
 });
 
 const formOriginal = ref({});
 
 onMounted(() => {
-  cargarUsuarios();
+  cargarAlumnos();
 });
 
-const cargarUsuarios = async () => {
+const cargarAlumnos = async () => {
   try {
-    const response = await usuariosService.getAll();
-    usuarios.value = response.data;
+    const response = await alumnosService.getAll();
+    alumnos.value = response.data;
   } catch (err) {
-    error.value = 'Error cargando usuarios';
+    error.value = 'Error cargando alumnos';
   }
 };
 
-const editarUsuario = (usuario) => {
+const editarAlumno = (alumno) => {
   editando.value = true;
   mostrarFormulario.value = true;
-  form.value = { ...usuario };
-  formOriginal.value = usuario;
+  form.value = { ...alumno };
+  formOriginal.value = alumno;
 };
 
-const guardarUsuario = async () => {
+const guardarAlumno = async () => {
   error.value = '';
   loading.value = true;
 
   try {
     if (editando.value) {
-      await usuariosService.update(formOriginal.value.id_usuario, form.value);
-      success.value = '✓ Usuario actualizado';
+      await alumnosService.update(formOriginal.value.id_alumno, form.value);
+      success.value = '✓ Alumno actualizado';
     } else {
-      await usuariosService.create(form.value);
-      success.value = '✓ Usuario creado';
+      await alumnosService.create(form.value);
+      success.value = '✓ Alumno creado';
     }
 
     cerrarFormulario();
-    await cargarUsuarios();
+    await cargarAlumnos();
   } catch (err) {
-    error.value = err.response?.data?.error || 'Error guardando usuario';
+    error.value = err.response?.data?.error || 'Error guardando alumno';
   } finally {
     loading.value = false;
   }
@@ -143,21 +171,44 @@ const guardarUsuario = async () => {
 const cerrarFormulario = () => {
   mostrarFormulario.value = false;
   editando.value = false;
-  form.value = { dni: '', nombre: '', apellido: '', tipo: 'alumno' };
+  form.value = { dni: '', nombre: '', apellido: '', celular: '', email: '', carrera: '' };
   error.value = '';
 };
 
-const eliminarUsuario = async (id) => {
-  if (!confirm('¿Estás seguro de eliminar este usuario?')) return;
+const eliminarAlumno = async (id) => {
+  if (!confirm('¿Estás seguro de eliminar este alumno?')) return;
 
   try {
-    await usuariosService.delete(id);
-    success.value = '✓ Usuario eliminado';
-    await cargarUsuarios();
+    await alumnosService.delete(id);
+    success.value = '✓ Alumno eliminado';
+    await cargarAlumnos();
   } catch (err) {
-    error.value = 'Error eliminando usuario';
+    error.value = 'Error eliminando alumno';
   }
 };
+
+const cargarDesdeExcel = async (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  console.log('📂 Archivo seleccionado:', file.name);
+
+
+  try {
+    await alumnosService.bulkUpload(file);
+    const response = await alumnosService.bulkUpload(file);
+    console.log('✅ Respuesta del backend:', response.data);
+
+    success.value = '✓ Archivo cargado correctamente';
+    await cargarAlumnos();
+  } catch (err) {
+    console.error('❌ Error al subir archivo:', err);
+    error.value = err.response?.data?.error || 'Error subiendo el archivo Excel.';
+  } finally {
+    event.target.value = '';
+  }
+};
+
 </script>
 
 <style scoped>
@@ -191,6 +242,19 @@ const eliminarUsuario = async (id) => {
 
 .btn-nuevo:hover {
   background: #218838;
+}
+
+.btn-carga-masiva {
+  padding: 10px 20px;
+  background: #e122a8;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+.btn-carga-masiva:hover {
+  background: #e307a1;
 }
 
 .form-modal {

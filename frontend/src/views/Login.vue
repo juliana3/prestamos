@@ -1,16 +1,18 @@
 <template>
-  <div class="login-container">
-    <div class="login-card">
+  <div class="login-wrapper">
+    <div class="login-container">
+      <!-- Logo y Título -->
       <div class="login-header">
-        <h1>📚 Sistema de Gestión</h1>
-        <p>Préstamo de Computadoras</p>
+        <div class="logo"></div>
+        <h1>Gestor de prestamos de computadoras</h1>
+        <p>Ingresa tus credenciales para acceder al sistema</p>
       </div>
 
+      <!-- Formulario -->
       <form @submit.prevent="handleLogin" class="login-form">
         <div class="form-group">
-          <label for="usuario">Usuario</label>
+          <label>Usuario</label>
           <input
-            id="usuario"
             v-model="form.usuario"
             type="text"
             placeholder="Ingresa tu usuario"
@@ -19,9 +21,8 @@
         </div>
 
         <div class="form-group">
-          <label for="contraseña">Contraseña</label>
+          <label>Contraseña</label>
           <input
-            id="contraseña"
             v-model="form.contraseña"
             type="password"
             placeholder="Ingresa tu contraseña"
@@ -30,18 +31,18 @@
         </div>
 
         <button type="submit" class="btn-login" :disabled="loading">
-          {{ loading ? 'Ingresando...' : 'Iniciar Sesión' }}
+          {{ loading ? '⏳ Iniciando Sesión...' : ' Iniciar Sesión' }}
         </button>
 
         <div v-if="error" class="alert alert-error">
-          {{ error }}
+          ⚠️ {{ error }}
         </div>
       </form>
 
-      <div class="demo-info">
-        <p><strong>Demo:</strong></p>
-        <p>Usuario: <code>superadmin</code></p>
-        <p>Contraseña: <code>admin123</code></p>
+      <!-- Credenciales de prueba -->
+      <div class="demo-credentials">
+        <p><strong>Usuario por defecto:</strong> superadmin</p>
+        <p><strong>Contraseña:</strong> admin123</p>
       </div>
     </div>
   </div>
@@ -65,11 +66,9 @@ const handleLogin = async () => {
     const response = await authService.login(form.value.usuario, form.value.contraseña);
     const { token, admin } = response.data;
 
-    // Guardar en localStorage
     localStorage.setItem('token', token);
     localStorage.setItem('admin', JSON.stringify(admin));
 
-    // Redirigir al dashboard
     router.push('/dashboard');
   } catch (err) {
     error.value = err.response?.data?.error || 'Error al iniciar sesión';
@@ -80,65 +79,75 @@ const handleLogin = async () => {
 </script>
 
 <style scoped>
-.login-container {
+.login-wrapper {
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 100vh;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
+  padding: 20px;
 }
 
-.login-card {
+.login-container {
   background: white;
-  border-radius: 12px;
+  border-radius: 16px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-  padding: 40px;
+  padding: 50px 40px;
   width: 100%;
-  max-width: 400px;
+  max-width: 420px;
 }
 
 .login-header {
   text-align: center;
-  margin-bottom: 30px;
+  margin-bottom: 40px;
+}
+
+.logo {
+  font-size: 48px;
+  margin-bottom: 15px;
 }
 
 .login-header h1 {
   margin: 0;
   font-size: 28px;
-  color: #333;
+  color: #1a1a1a;
+  font-weight: 700;
 }
 
 .login-header p {
-  margin: 5px 0 0 0;
+  margin: 8px 0 0 0;
   color: #666;
   font-size: 14px;
+  font-weight: 500;
 }
 
 .login-form {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  margin-bottom: 30px;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 8px;
 }
 
 .form-group label {
   font-weight: 600;
-  color: #333;
+  color: #1a1a1a;
   font-size: 14px;
 }
 
 .form-group input {
-  padding: 12px;
+  padding: 12px 14px;
   border: 2px solid #e0e0e0;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 14px;
-  transition: all 0.3s;
+  transition: all 0.3s ease;
+  font-family: inherit;
 }
 
 .form-group input:focus {
@@ -148,16 +157,15 @@ const handleLogin = async () => {
 }
 
 .btn-login {
-  padding: 12px;
+  padding: 14px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   font-weight: 600;
   font-size: 16px;
   cursor: pointer;
-  transition: all 0.3s;
-  margin-top: 10px;
+  transition: all 0.3s ease;
 }
 
 .btn-login:hover:not(:disabled) {
@@ -171,35 +179,32 @@ const handleLogin = async () => {
 }
 
 .alert {
-  padding: 12px;
-  border-radius: 6px;
+  padding: 12px 14px;
+  border-radius: 8px;
   font-size: 14px;
-  margin-top: 10px;
 }
 
 .alert-error {
-  background-color: #fee;
+  background: #fee;
   color: #c33;
   border: 1px solid #fcc;
 }
 
-.demo-info {
-  margin-top: 25px;
-  padding-top: 20px;
-  border-top: 1px solid #e0e0e0;
-  font-size: 13px;
-  color: #666;
-}
-
-.demo-info p {
-  margin: 5px 0;
-}
-
-.demo-info code {
+.demo-credentials {
   background: #f5f5f5;
-  padding: 2px 6px;
-  border-radius: 3px;
-  font-family: 'Courier New', monospace;
-  color: #333;
+  padding: 16px;
+  border-radius: 8px;
+  text-align: center;
+  border-left: 4px solid #667eea;
+}
+
+.demo-credentials p {
+  margin: 4px 0;
+  font-size: 13px;
+  color: #555;
+}
+
+.demo-credentials strong {
+  color: #1a1a1a;
 }
 </style>

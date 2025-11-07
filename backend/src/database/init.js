@@ -6,13 +6,24 @@ const path = require('path');
 const dbPath = path.join(__dirname, '../../database.db');
 
 // Crear/conectar a la base de datos
-const db = new sqlite3.Database(dbPath, (err) => {
+const db = new sqlite3.Database(dbPath, sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE, (err) => {
   if (err) {
     console.error('❌ Error conectando a la BD:', err);
     process.exit(1);
   }
   console.log('✓ SQLite conectado en:', dbPath);
+
+  // Configuraciones robustas para concurrencia
+  db.exec(`
+    PRAGMA journal_mode = WAL;
+    PRAGMA synchronous = NORMAL;
+    PRAGMA busy_timeout = 10000;
+  `, (err) => {
+    if (err) console.error('⚠️ Error aplicando PRAGMAs:', err.message);
+    else console.log('⚙️ Modo WAL y timeout configurados correctamente');
+  });
 });
+
 
 // Funciones auxiliares para trabajar con promesas
 const dbRun = (sql, params = []) => {
@@ -47,25 +58,45 @@ const initTables = async () => {
   try {
     console.log('🔄 Creando tablas...');
 
-    // Tabla Usuarios
+    // Tabla ALUMNOS
     await dbRun(`
-      CREATE TABLE IF NOT EXISTS usuarios (
-        id_usuario INTEGER PRIMARY KEY AUTOINCREMENT,
+      CREATE TABLE IF NOT EXISTS alumnos (
+        id_alumno INTEGER PRIMARY KEY AUTOINCREMENT,
         dni TEXT UNIQUE NOT NULL,
         nombre TEXT NOT NULL,
         apellido TEXT NOT NULL,
-        tipo TEXT NOT NULL CHECK(tipo IN ('alumno', 'docente')),
+        celular TEXT,
+        email TEXT,
+        carrera TEXT,
+        activo INTEGER DEFAULT 1,
+        fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+        id_docente INTEGER,
+        FOREIGN KEY (id_docente) REFERENCES docentes(id_docente) ON DELETE SET NULL
+      )
+    `);
+    console.log('✓ Tabla alumnos creada');
+
+    // Tabla DOCENTES
+    await dbRun(`
+      CREATE TABLE IF NOT EXISTS docentes (
+        id_docente INTEGER PRIMARY KEY AUTOINCREMENT,
+        dni TEXT UNIQUE NOT NULL,
+        nombre TEXT NOT NULL,
+        apellido TEXT NOT NULL,
+        celular TEXT,
+        email TEXT,
+        activo INTEGER DEFAULT 1,
         fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP
       )
     `);
-    console.log('✓ Tabla usuarios creada');
+    console.log('✓ Tabla docentes creada');
 
     // Tabla Carros
     await dbRun(`
       CREATE TABLE IF NOT EXISTS carros (
         id_carro INTEGER PRIMARY KEY AUTOINCREMENT,
-        ubicacion TEXT NOT NULL UNIQUE,
-        fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP
+        fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+        nombre TEXT NOT NULL
       )
     `);
     console.log('✓ Tabla carros creada');
@@ -83,20 +114,25 @@ const initTables = async () => {
     `);
     console.log('✓ Tabla computadoras creada');
 
-    // Tabla Prestamos
+    
+  // Tabla PRESTAMOS
     await dbRun(`
       CREATE TABLE IF NOT EXISTS prestamos (
         id_prestamo INTEGER PRIMARY KEY AUTOINCREMENT,
-        id_usuario INTEGER NOT NULL,
+        id_alumno INTEGER,
+        id_docente INTEGER,
         id_computadora INTEGER NOT NULL,
         fecha_inicio DATETIME DEFAULT CURRENT_TIMESTAMP,
         fecha_fin DATETIME,
         estado TEXT NOT NULL DEFAULT 'activo' CHECK(estado IN ('activo', 'devuelto')),
-        FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) ON DELETE CASCADE,
+        observaciones TEXT,
+        FOREIGN KEY (id_alumno) REFERENCES alumnos(id_alumno) ON DELETE SET NULL,
+        FOREIGN KEY (id_docente) REFERENCES docentes(id_docente) ON DELETE SET NULL,
         FOREIGN KEY (id_computadora) REFERENCES computadoras(id_computadora) ON DELETE CASCADE
       )
     `);
     console.log('✓ Tabla prestamos creada');
+
 
     // Tabla Administradores
     await dbRun(`

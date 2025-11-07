@@ -11,7 +11,7 @@ router.use(checkAdmin);
 // OBTENER todos los carros
 router.get('/', async (req, res) => {
   try {
-    const carros = await dbAll('SELECT * FROM carros ORDER BY ubicacion');
+    const carros = await dbAll('SELECT * FROM carros ORDER BY nombre ASC');
     res.json(carros);
   } catch (err) {
     console.error('Error:', err);
@@ -22,26 +22,24 @@ router.get('/', async (req, res) => {
 // CREAR carro
 router.post('/', async (req, res) => {
   try {
-    const { ubicacion } = req.body;
+    
+    const { nombre } = req.body;
 
-    if (!ubicacion) {
-      return res.status(400).json({ error: 'Ubicación requerida' });
+    if (!nombre) {
+      return res.status(400).json({ error: 'Nombre requerido' });
     }
 
     const result = await dbRun(
-      'INSERT INTO carros (ubicacion) VALUES (?)',
-      [ubicacion]
+      'INSERT INTO carros (nombre) VALUES (?)',
+      [nombre]
     );
 
     res.status(201).json({
       id_carro: result.lastID,
-      ubicacion,
+      nombre,
       message: 'Carro creado exitosamente'
     });
   } catch (err) {
-    if (err.message.includes('UNIQUE')) {
-      return res.status(400).json({ error: 'Ya existe un carro con esa ubicación' });
-    }
     console.error('Error:', err);
     res.status(500).json({ error: 'Error creando carro' });
   }
@@ -66,10 +64,10 @@ router.get('/:id', async (req, res) => {
 // ACTUALIZAR carro
 router.put('/:id', async (req, res) => {
   try {
-    const { ubicacion } = req.body;
+    const { nombre } = req.body;
 
-    if (!ubicacion) {
-      return res.status(400).json({ error: 'Ubicación requerida' });
+    if (!nombre) {
+      return res.status(400).json({ error: 'Nombre requerido' });
     }
 
     const carro = await dbGet('SELECT * FROM carros WHERE id_carro = ?', [req.params.id]);
@@ -78,15 +76,13 @@ router.put('/:id', async (req, res) => {
     }
 
     await dbRun(
-      'UPDATE carros SET ubicacion = ? WHERE id_carro = ?',
-      [ubicacion, req.params.id]
+      'UPDATE carros SET nombre = ? WHERE id_carro = ?',
+      [nombre, req.params.id]
     );
 
+    // Aquí podrías actualizar otras columnas existentes si las tenés
     res.json({ message: 'Carro actualizado exitosamente' });
   } catch (err) {
-    if (err.message.includes('UNIQUE')) {
-      return res.status(400).json({ error: 'Ya existe un carro con esa ubicación' });
-    }
     console.error('Error:', err);
     res.status(500).json({ error: 'Error actualizando carro' });
   }
@@ -101,18 +97,19 @@ router.delete('/:id', async (req, res) => {
     }
 
     // Verificar si tiene computadoras asociadas
-    const computadoras = await dbAll('SELECT COUNT(*) as count FROM computadoras WHERE id_carro = ?', [req.params.id]);
+    const computadoras = await dbAll(
+      'SELECT COUNT(*) as count FROM computadoras WHERE id_carro = ?',
+      [req.params.id]
+    );
     if (computadoras[0].count > 0) {
       return res.status(400).json({ error: 'No se puede eliminar un carro que tiene computadoras' });
     }
 
     await dbRun('DELETE FROM carros WHERE id_carro = ?', [req.params.id]);
-
     res.json({ message: 'Carro eliminado exitosamente' });
   } catch (err) {
     console.error('Error:', err);
     res.status(500).json({ error: 'Error eliminando carro' });
   }
 });
-
 module.exports = router;

@@ -12,7 +12,7 @@
         
         <div class="form-group">
           <label>Ubicación</label>
-          <input v-model="form.ubicacion" type="text" placeholder="Sala de Informática A" />
+          <input v-model="form.nombre" type="text" placeholder="Sala de Informática A" />
         </div>
 
         <div class="form-actions">
@@ -32,14 +32,14 @@
         <thead>
           <tr>
             <th>ID</th>
-            <th>Ubicación</th>
+            <th>Carro</th>
             <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="carro in carros" :key="carro.id_carro">
             <td>#{{ carro.id_carro }}</td>
-            <td>{{ carro.ubicacion }}</td>
+            <td>{{ carro.nombre }}</td>
             <td class="acciones">
               <button @click="editarCarro(carro)" class="btn-editar">Editar</button>
               <button @click="eliminarCarro(carro.id_carro)" class="btn-eliminar">Eliminar</button>
@@ -65,7 +65,7 @@ const error = ref('');
 const success = ref('');
 
 const form = ref({
-  ubicacion: ''
+  nombre: ''
 });
 
 const formOriginal = ref({});
@@ -115,7 +115,7 @@ const guardarCarro = async () => {
 const cerrarFormulario = () => {
   mostrarFormulario.value = false;
   editando.value = false;
-  form.value = { ubicacion: '' };
+  form.value = { nombre: '' };
   error.value = '';
 };
 

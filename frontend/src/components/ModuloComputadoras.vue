@@ -20,7 +20,7 @@
           <select v-model="form.id_carro">
             <option value="">-- Selecciona un carro --</option>
             <option v-for="carro in carros" :key="carro.id_carro" :value="carro.id_carro">
-              {{ carro.ubicacion }}
+              {{ carro.nombre }}
             </option>
           </select>
         </div>
@@ -51,7 +51,7 @@
         <thead>
           <tr>
             <th>Inventario</th>
-            <th>Ubicación</th>
+            <th>Carro</th>
             <th>Estado</th>
             <th>Acciones</th>
           </tr>
@@ -59,7 +59,7 @@
         <tbody>
           <tr v-for="pc in computadoras" :key="pc.id_computadora">
             <td>{{ pc.numero_inventario }}</td>
-            <td>{{ pc.ubicacion }}</td>
+            <td>{{ pc.nombre }}</td>
             <td><span class="badge" :class="pc.estado">{{ pc.estado }}</span></td>
             <td class="acciones">
               <button @click="editarComputadora(pc)" class="btn-editar">Editar</button>

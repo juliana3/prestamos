@@ -1,6 +1,6 @@
 <template>
   <div class="modulo">
-    <h2>📋 Historial de Préstamos</h2>
+    <h2>Historial de préstamos</h2>
 
     <!-- Búsqueda -->
     <div class="search-box">
@@ -19,6 +19,7 @@
         <thead>
           <tr>
             <th>Usuario</th>
+            <th>Tipo</th>
             <th>DNI</th>
             <th>Computadora</th>
             <th>Inicio</th>
@@ -29,6 +30,7 @@
         <tbody>
           <tr v-for="prestamo in prestamos" :key="prestamo.id_prestamo">
             <td>{{ prestamo.nombre }} {{ prestamo.apellido }}</td>
+            <td>{{ prestamo.tipo }}</td>
             <td>{{ prestamo.dni }}</td>
             <td>{{ prestamo.numero_inventario }}</td>
             <td>{{ formatDate(prestamo.fecha_inicio) }}</td>
@@ -50,32 +52,23 @@
 import { ref, onMounted } from 'vue';
 import { prestamosService } from '../services/api';
 
-const dni = ref('');
 const prestamos = ref([]);
 const error = ref('');
 
 onMounted(() => {
-  buscar();
+  cargarHistorial();
 });
 
-const buscar = async () => {
+const cargarHistorial = async () => {
   error.value = '';
   prestamos.value = [];
 
   try {
-    if (dni.value.trim()) {
-      const response = await prestamosService.getHistorialByDni(dni.value);
-      prestamos.value = response.data;
-    } else {
-      const response = await prestamosService.getAll();
-      prestamos.value = response.data;
-    }
+    const response = await prestamosService.getHistorialCompleto(); // nueva función en tu service
+    prestamos.value = response.data;
   } catch (err) {
-    if (err.response?.status === 404) {
-      prestamos.value = [];
-    } else {
-      error.value = 'Error cargando historial';
-    }
+    console.error(err);
+    error.value = 'Error cargando historial';
   }
 };
 
@@ -89,6 +82,7 @@ const formatDate = (dateString) => {
     minute: '2-digit'
   });
 };
+
 </script>
 
 <style scoped>

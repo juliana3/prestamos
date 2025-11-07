@@ -40,15 +40,7 @@ export const authService = {
   logout: () => api.post('/auth/logout')
 };
 
-// ==================== USUARIOS ====================
-export const usuariosService = {
-  getAll: () => api.get('/usuarios'),
-  getById: (id) => api.get(`/usuarios/${id}`),
-  getByDni: (dni) => api.get(`/usuarios/dni/${dni}`),
-  create: (data) => api.post('/usuarios', data),
-  update: (id, data) => api.put(`/usuarios/${id}`, data),
-  delete: (id) => api.delete(`/usuarios/${id}`)
-};
+
 
 // ==================== CARROS ====================
 export const carrosService = {
@@ -65,7 +57,8 @@ export const computadorasService = {
   getById: (id) => api.get(`/computadoras/${id}`),
   create: (data) => api.post('/computadoras', data),
   update: (id, data) => api.put(`/computadoras/${id}`, data),
-  delete: (id) => api.delete(`/computadoras/${id}`)
+  delete: (id) => api.delete(`/computadoras/${id}`),
+  getDisponibles: () => api.get('/computadoras/disponibles')
 };
 
 // ==================== PRÉSTAMOS ====================
@@ -73,9 +66,42 @@ export const prestamosService = {
   getAll: () => api.get('/prestamos'),
   getActivos: () => api.get('/prestamos/activos'),
   getByDni: (dni) => api.get(`/prestamos/usuario/${dni}`),
-  getHistorialByDni: (dni) => api.get(`/prestamos/historial/${dni}`),
+  getHistorialCompleto: () => api.get('/prestamos/historial'),
   create: (data) => api.post('/prestamos', data),
   devolver: (id) => api.post(`/prestamos/${id}/devolver`)
 };
+
+// ==================== ALUMNOS ====================
+export const alumnosService = {
+  getAll: () => api.get('/alumnos'),
+  getById: (id) => api.get(`/alumnos/${id}`),
+  create: (data) => api.post('/alumnos', data),
+  update: (id, data) => api.put(`/alumnos/${id}`, data),
+  delete: (id) => api.delete(`/alumnos/${id}`),
+  bulkUpload: (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post('/alumnos/carga-masiva', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  }
+};
+
+// ==================== DOCENTES ====================
+export const docentesService = {
+  getAll: () => api.get('/docentes'),
+  getById: (id) => api.get(`/docentes/${id}`),
+  create: (data) => api.post('/docentes', data),
+  update: (id, data) => api.put(`/docentes/${id}`, data),
+  delete: (id) => api.delete(`/docentes/${id}`),
+  bulkUpload: (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post('/docentes/carga-masiva', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  }
+};
+
 
 export default api;

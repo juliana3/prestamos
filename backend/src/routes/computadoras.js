@@ -12,7 +12,7 @@ router.use(checkAdmin);
 router.get('/', async (req, res) => {
   try {
     const query = `
-      SELECT c.*, ca.ubicacion 
+      SELECT c.*, ca.nombre
       FROM computadoras c
       LEFT JOIN carros ca ON c.id_carro = ca.id_carro
       ORDER BY c.numero_inventario
@@ -28,7 +28,7 @@ router.get('/', async (req, res) => {
 // CREAR computadora
 router.post('/', async (req, res) => {
   try {
-    const { numero_inventario, id_carro } = req.body;
+    const { numero_inventario, id_carro, estado } = req.body;
 
     if (!numero_inventario || !id_carro) {
       return res.status(400).json({ error: 'Número de inventario e id_carro requeridos' });
@@ -41,15 +41,15 @@ router.post('/', async (req, res) => {
     }
 
     const result = await dbRun(
-      'INSERT INTO computadoras (numero_inventario, id_carro) VALUES (?, ?)',
-      [numero_inventario, id_carro]
+      'INSERT INTO computadoras (numero_inventario, id_carro, estado) VALUES (?, ?, ?)',
+      [numero_inventario, id_carro, estado || 'disponible']
     );
 
     res.status(201).json({
       id_computadora: result.lastID,
       numero_inventario,
       id_carro,
-      estado: 'disponible',
+      estado: estado || 'disponible',
       message: 'Computadora creada exitosamente'
     });
   } catch (err) {
@@ -61,11 +61,28 @@ router.post('/', async (req, res) => {
   }
 });
 
+// OBTENER solo computadoras disponibles
+router.get('/disponibles', async (req, res) => {
+  try {
+    const computadoras = await dbAll(`
+      SELECT c.*, ca.nombre
+      FROM computadoras c
+      LEFT JOIN carros ca ON c.id_carro = ca.id_carro
+      WHERE c.estado = 'disponible'
+      ORDER BY c.numero_inventario
+    `);
+    res.json(computadoras);
+  } catch (err) {
+    console.error('Error:', err);
+    res.status(500).json({ error: 'Error obteniendo computadoras disponibles' });
+  }
+});
+
 // OBTENER computadora por ID
 router.get('/:id', async (req, res) => {
   try {
     const query = `
-      SELECT c.*, ca.ubicacion 
+      SELECT c.*, ca.nombre 
       FROM computadoras c
       LEFT JOIN carros ca ON c.id_carro = ca.id_carro
       WHERE c.id_computadora = ?
@@ -134,5 +151,8 @@ router.delete('/:id', async (req, res) => {
     res.status(500).json({ error: 'Error eliminando computadora' });
   }
 });
+
+
+
 
 module.exports = router;
