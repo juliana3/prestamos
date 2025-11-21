@@ -1,7 +1,7 @@
 <template>
   <div class="modulo">
     <div class="modulo-header">
-      <h2>🛒 Carros</h2>
+      <h2> Carros</h2>
       <button @click="mostrarFormulario = true" class="btn-nuevo">+ Nuevo Carro</button>
     </div>
 
@@ -11,8 +11,8 @@
         <h3>{{ editando ? 'Editar Carro' : 'Nuevo Carro' }}</h3>
         
         <div class="form-group">
-          <label>Ubicación</label>
-          <input v-model="form.nombre" type="text" placeholder="Sala de Informática A" />
+          <label>Nombre</label>
+          <input v-model="form.nombre" type="text" placeholder="Identificador del carro" />
         </div>
 
         <div class="form-actions">

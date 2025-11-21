@@ -1,0 +1,58 @@
+{
+  "name": "gestor-prestamos",
+  "version": "1.0.0",
+  "description": "Gestor de Préstamos",
+  "author": "Juliana3",
+  "main": "electron-main.js",
+"scripts": {
+  "dev": "concurrently \"npm run dev:vite\" \"npm run dev:server\"",
+  "dev:vite": "cd frontend && npm run dev",
+  "dev:server": "node backend/serverjs",
+  "build": "cd frontend && npm run build",
+  "electron:dev": "electron .",
+  "electron:build": "npm run build && npm run electron:rebuild && electron-builder",
+  "electron:rebuild": "electron-rebuild -f -w sqlite3",
+  "postinstall": "electron-builder install-app-deps && npm run electron:rebuild && cd frontend && npm install && cd ../backend && npm install"
+},
+  "build": {
+    "appId": "com.gestorprestamos.app",
+    "productName": "Gestor Préstamos",
+    "files": [
+      "electron-main.js",
+      "backend/**/*",
+      "dist/**/*",
+      "package.json"
+    ],
+    "directories": {
+      "buildResources": "build",
+      "output": "release"
+    },
+    "extraResources": [
+      {
+        "from": "backend/database.db",
+        "to": "database.db"
+      }
+    ],
+    "win": {
+      "target": ["nsis"],
+      "icon": "build/icon.ico"
+    },
+    "linux": {
+      "target": ["AppImage"],
+      "icon": "build/icon.png"
+    },
+    "mac": {
+      "target": ["dmg"],
+      "icon": "build/icon.icns"
+    }
+  },
+  "dependencies": {
+    "sqlite3": "^5.1.7"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "electron": "^32.0.0",
+    "electron-builder": "^26.0.0",
+    "electron-rebuild": "^3.2.9"
+  }
+}
