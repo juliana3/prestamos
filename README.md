@@ -6,7 +6,7 @@
 
 Para información detallada sobre el uso del sistema, consulta:
 
-- [Manual de Usuario](./DOCUMENTACION.md) - Guía completa de uso
+- [Manual de Usuario](./MANUAL.md) - Guía completa de uso
 - [Documentación Técnica](https://deepwiki.com/juliana3/prestamos) - Detalles de implementación
 
 ---
